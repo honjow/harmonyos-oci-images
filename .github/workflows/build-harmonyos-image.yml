@@ -34,6 +34,13 @@ permissions:
   contents: read
   packages: write
 
+env:
+  VERSION: ${{ github.event.inputs.version || '6.1.0.830' }}
+  IMAGE_NAME: ${{ github.event.inputs.image_name || 'harmonyos-build-env' }}
+  API_TAG: ${{ github.event.inputs.api_tag || '6.1-api23' }}
+  SDK_ASSET: ${{ github.event.inputs.sdk_asset || 'command-line-tools-6.1.0.830.tar.zst' }}
+  LINKED_REPOSITORY: ${{ github.event.inputs.linked_repository || 'honjow/Next2V' }}
+
 jobs:
   build:
     name: Build and publish HarmonyOS image
@@ -50,11 +57,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p /tmp/harmonyos-sdk build/context
-          gh release download "${{ inputs.version }}" \
+          gh release download "$VERSION" \
             --repo "${{ github.repository }}" \
-            --pattern "${{ inputs.sdk_asset }}" \
+            --pattern "$SDK_ASSET" \
             --dir /tmp/harmonyos-sdk
-          tar --zstd -xf "/tmp/harmonyos-sdk/${{ inputs.sdk_asset }}" -C build/context
+          tar --zstd -xf "/tmp/harmonyos-sdk/$SDK_ASSET" -C build/context
           test -d build/context/command-line-tools
 
       - name: Prepare Docker context
@@ -74,8 +81,8 @@ jobs:
           file: build/context/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}:${{ inputs.version }}
-            ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}:${{ inputs.api_tag }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.API_TAG }}
           build-args: |
-            IMAGE_SOURCE=https://github.com/${{ inputs.linked_repository }}
-            IMAGE_DESCRIPTION=HarmonyOS command-line build environment ${{ inputs.version }}
+            IMAGE_SOURCE=https://github.com/${{ env.LINKED_REPOSITORY }}
+            IMAGE_DESCRIPTION=HarmonyOS command-line build environment ${{ env.VERSION }}
