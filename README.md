@@ -16,6 +16,4 @@ The SDK payload is not committed. Upload a release asset named like
 `command-line-tools-6.1.0.830.tar.zst` that expands to `command-line-tools/`,
 then run the `Build HarmonyOS OCI image` workflow.
 
-The workflow sets `org.opencontainers.image.source` to the consuming repository
-(default `honjow/Next2V`) before the first publish so GitHub Packages can attach
-repository workflow access correctly.
+The workflow labels the image source as this repository.

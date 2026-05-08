@@ -25,10 +25,6 @@ on:
         description: Release asset containing command-line-tools as tar.zst
         required: true
         default: command-line-tools-6.1.0.830.tar.zst
-      linked_repository:
-        description: Repository to link through org.opencontainers.image.source
-        required: true
-        default: honjow/Next2V
 
 permissions:
   contents: read
@@ -39,7 +35,6 @@ env:
   IMAGE_NAME: ${{ github.event.inputs.image_name || 'harmonyos-build-env' }}
   API_TAG: ${{ github.event.inputs.api_tag || '6.1-api23' }}
   SDK_ASSET: ${{ github.event.inputs.sdk_asset || 'command-line-tools-6.1.0.830.tar.zst' }}
-  LINKED_REPOSITORY: ${{ github.event.inputs.linked_repository || 'honjow/Next2V' }}
 
 jobs:
   build:
@@ -90,5 +85,4 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.API_TAG }}
           build-args: |
-            IMAGE_SOURCE=https://github.com/${{ env.LINKED_REPOSITORY }}
             IMAGE_DESCRIPTION=HarmonyOS command-line build environment ${{ env.VERSION }}

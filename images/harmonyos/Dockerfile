@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 ARG COMMAND_LINE_TOOLS_DIR=command-line-tools
-ARG IMAGE_SOURCE=https://github.com/honjow/Next2V
+ARG IMAGE_SOURCE=https://github.com/honjow/harmonyos-oci-images
 ARG IMAGE_DESCRIPTION="HarmonyOS command-line build environment"
 
 ENV DEBIAN_FRONTEND=noninteractive
