@@ -1,0 +1,75 @@
+name: Build HarmonyOS OCI image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: DevEco command-line tools version / image tag
+        required: true
+        default: 6.1.0.830
+      image_name:
+        description: GHCR image name
+        required: true
+        default: harmonyos-build-env
+      api_tag:
+        description: Additional moving tag for the SDK/API line
+        required: true
+        default: 6.1-api23
+      sdk_asset:
+        description: Release asset containing command-line-tools as tar.zst
+        required: true
+        default: command-line-tools-6.1.0.830.tar.zst
+      linked_repository:
+        description: Repository to link through org.opencontainers.image.source
+        required: true
+        default: honjow/Next2V
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build and publish HarmonyOS image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout image definitions
+        uses: actions/checkout@v4
+
+      - name: Install archive tooling
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends zstd
+
+      - name: Download command-line tools release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/harmonyos-sdk build/context
+          gh release download "${{ inputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ inputs.sdk_asset }}" \
+            --dir /tmp/harmonyos-sdk
+          tar --zstd -xf "/tmp/harmonyos-sdk/${{ inputs.sdk_asset }}" -C build/context
+          test -d build/context/command-line-tools
+
+      - name: Prepare Docker context
+        run: cp images/harmonyos/Dockerfile build/context/Dockerfile
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: build/context
+          file: build/context/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}:${{ inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/${{ inputs.image_name }}:${{ inputs.api_tag }}
+          build-args: |
+            IMAGE_SOURCE=https://github.com/${{ inputs.linked_repository }}
+            IMAGE_DESCRIPTION=HarmonyOS command-line build environment ${{ inputs.version }}
