@@ -12,7 +12,7 @@ on:
       version:
         description: DevEco command-line tools version / image tag
         required: true
-        default: 6.1.0.830
+        default: 6.1.1.280
       image_name:
         description: GHCR image name
         required: true
@@ -20,21 +20,21 @@ on:
       api_tag:
         description: Additional moving tag for the SDK/API line
         required: true
-        default: 6.1-api23
+        default: 6.1-api24
       sdk_asset:
         description: Release asset containing command-line-tools as tar.zst
         required: true
-        default: command-line-tools-6.1.0.830.tar.zst
+        default: command-line-tools-6.1.1.280.tar.zst
 
 permissions:
   contents: read
   packages: write
 
 env:
-  VERSION: ${{ github.event.inputs.version || '6.1.0.830' }}
+  VERSION: ${{ github.event.inputs.version || '6.1.1.280' }}
   IMAGE_NAME: ${{ github.event.inputs.image_name || 'harmonyos-build-env' }}
-  API_TAG: ${{ github.event.inputs.api_tag || '6.1-api23' }}
-  SDK_ASSET: ${{ github.event.inputs.sdk_asset || 'command-line-tools-6.1.0.830.tar.zst' }}
+  API_TAG: ${{ github.event.inputs.api_tag || '6.1-api24' }}
+  SDK_ASSET: ${{ github.event.inputs.sdk_asset || 'command-line-tools-6.1.1.280.tar.zst' }}
 
 jobs:
   build:
