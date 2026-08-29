@@ -1,6 +1,25 @@
+FROM ubuntu:22.04 AS sdk-unpack
+
+ARG COMMAND_LINE_TOOLS_ARCHIVE=command-line-tools.tar.zst
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates tar zstd \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY ${COMMAND_LINE_TOOLS_ARCHIVE} /tmp/command-line-tools.tar.zst
+
+RUN mkdir -p /payload \
+ && tar --zstd -xf /tmp/command-line-tools.tar.zst -C /payload \
+ && test -d /payload/command-line-tools/bin \
+ && test -d /payload/command-line-tools/sdk \
+ && test -f /payload/command-line-tools/bin/ohpm \
+ && test -f /payload/command-line-tools/bin/hvigorw \
+ && test -f /payload/command-line-tools/tool/node/bin/node \
+ && test -f /payload/command-line-tools/sdk/default/openharmony/native/sysroot/usr/include/linux/netfilter_ipv6/ip6t_HL.h \
+ && test -f /payload/command-line-tools/sdk/default/openharmony/native/sysroot/usr/include/linux/netfilter_ipv6/ip6t_hl.h
+
 FROM ubuntu:22.04
 
-ARG COMMAND_LINE_TOOLS_DIR=command-line-tools
 ARG IMAGE_SOURCE=https://github.com/honjow/harmonyos-oci-images
 ARG IMAGE_DESCRIPTION="HarmonyOS command-line build environment"
 
@@ -16,7 +35,7 @@ RUN apt-get update \
 LABEL org.opencontainers.image.source="${IMAGE_SOURCE}" \
       org.opencontainers.image.description="${IMAGE_DESCRIPTION}"
 
-COPY ${COMMAND_LINE_TOOLS_DIR} /opt/harmonyos/command-line-tools
+COPY --from=sdk-unpack /payload/command-line-tools /opt/harmonyos/command-line-tools
 
 ENV COMMANDLINE_TOOLS_HOME=/opt/harmonyos/command-line-tools \
     DEVECO_SDK_HOME=/opt/harmonyos/command-line-tools/sdk \

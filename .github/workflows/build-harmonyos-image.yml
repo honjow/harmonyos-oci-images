@@ -12,7 +12,7 @@ on:
       version:
         description: DevEco command-line tools version / image tag
         required: true
-        default: 26.0.0.461
+        default: 26.0.0.821
       image_name:
         description: GHCR image name
         required: true
@@ -24,17 +24,22 @@ on:
       sdk_asset:
         description: Release asset containing command-line-tools as tar.zst
         required: true
-        default: command-line-tools-26.0.0.461.tar.zst
+        default: command-line-tools-26.0.0.821.tar.zst
+      sdk_sha256:
+        description: SHA256 of the release asset
+        required: true
+        default: 6fe80eb986d13813882c231a3f1d1a881ba8891ec3059c727c9273e3580d7b88
 
 permissions:
   contents: read
   packages: write
 
 env:
-  VERSION: ${{ github.event.inputs.version || '26.0.0.461' }}
+  VERSION: ${{ github.event.inputs.version || '26.0.0.821' }}
   IMAGE_NAME: ${{ github.event.inputs.image_name || 'harmonyos-build-env' }}
   API_TAG: ${{ github.event.inputs.api_tag || '26.0-api26' }}
-  SDK_ASSET: ${{ github.event.inputs.sdk_asset || 'command-line-tools-26.0.0.461.tar.zst' }}
+  SDK_ASSET: ${{ github.event.inputs.sdk_asset || 'command-line-tools-26.0.0.821.tar.zst' }}
+  SDK_SHA256: ${{ github.event.inputs.sdk_sha256 || '6fe80eb986d13813882c231a3f1d1a881ba8891ec3059c727c9273e3580d7b88' }}
 
 jobs:
   build:
@@ -50,9 +55,6 @@ jobs:
           docker system prune -af || true
           df -h
 
-      - name: Install archive tooling
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends zstd
-
       - name: Download command-line tools release asset
         env:
           GH_TOKEN: ${{ github.token }}
@@ -62,8 +64,8 @@ jobs:
             --repo "${{ github.repository }}" \
             --pattern "$SDK_ASSET" \
             --dir /tmp/harmonyos-sdk
-          tar --zstd -xf "/tmp/harmonyos-sdk/$SDK_ASSET" -C build/context
-          test -d build/context/command-line-tools
+          echo "$SDK_SHA256  /tmp/harmonyos-sdk/$SDK_ASSET" | sha256sum -c -
+          cp "/tmp/harmonyos-sdk/$SDK_ASSET" build/context/command-line-tools.tar.zst
 
       - name: Prepare Docker context
         run: cp images/harmonyos/Dockerfile build/context/Dockerfile
