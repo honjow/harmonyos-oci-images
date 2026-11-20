@@ -1,0 +1,42 @@
+name: Build HarmonyOS native tool image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: harmonyos-native-tool-image
+  cancel-in-progress: false
+
+env:
+  IMAGE_REF: ghcr.io/honjow/harmonyos-build-env:26.0.0.821-native.1
+
+jobs:
+  publish:
+    if: github.repository == 'honjow/harmonyos-oci-images' && github.ref == 'refs/heads/main'
+    name: Publish a versioned image with native tools
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout image definitions
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build the image
+        run: docker build --platform linux/amd64 --tag "$IMAGE_REF" images/harmonyos-native
+
+      - name: Publish the versioned variant
+        run: |
+          docker push "$IMAGE_REF"
+          docker buildx imagetools inspect "$IMAGE_REF" | tee -a "$GITHUB_STEP_SUMMARY"

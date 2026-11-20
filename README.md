@@ -21,3 +21,14 @@ The workflow labels the image source as this repository.
 For the complete macOS preparation, checksum, local validation, release, and
 downstream acceptance process, see [Publishing a HarmonyOS build image from
 macOS](docs/RELEASING.md).
+
+## Image with native build tools
+
+The separate variant `26.0.0.821-native.1` adds Koma's fixed Ubuntu build
+tools to the exact `26.0.0.821` base image. It reuses the published SDK
+layers and does not update the existing SDK tags.
+
+From `main`, run **Build HarmonyOS native tool image** to publish the
+variant. Use the registry digest reported by that workflow in a downstream
+build, and verify a complete HAP build before switching release workflows.
+Use a new variant tag for future changes.
